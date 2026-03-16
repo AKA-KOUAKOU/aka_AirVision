@@ -28,6 +28,12 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadPseudo();
   }
 
+  @override
+  void dispose() {
+    _pseudoController.dispose();
+    super.dispose();
+  }
+
   Future<void> _loadPseudo() async {
     final prefs = await SharedPreferences.getInstance();
     _pseudoController.text = prefs.getString('pseudo') ?? '';
@@ -50,10 +56,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('AirVision'),
+        title: Row(
+          children: [
+            Icon(Icons.content_cut,
+                color: Colors.white, size: 22),
+            const SizedBox(width: 8),
+            const Text('AirVision',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
+          ],
+        ),
+        backgroundColor: const Color(0xFF204854),
         actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.white),
+            tooltip: 'Se déconnecter',
             onPressed: () => authProvider.signOut(),
           ),
         ],
@@ -71,31 +88,106 @@ class _HomeScreenState extends State<HomeScreen> {
           child: Column(
             children: [
               Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
                 child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 8),
                   child: TextField(
                     controller: _pseudoController,
                     decoration: const InputDecoration(
-                      labelText: 'Pseudo',
-                      border: OutlineInputBorder(),
+                      labelText: 'Pseudo (entrez "admin" pour accès admin)',
+                      border: InputBorder.none,
+                      prefixIcon: Icon(Icons.person),
                     ),
                     onChanged: _savePseudo,
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
               Expanded(
                 child: GridView.count(
                   crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
+                  crossAxisSpacing: 14,
+                  mainAxisSpacing: 14,
                   children: [
-                    _buildAnimatedButton('Analyse IA', Icons.face, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FacialAnalysisScreen()))),
-                    _buildAnimatedButton('Boutique', Icons.shopping_cart, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketplaceScreen()))),
-                    _buildAnimatedButton('Historique', Icons.history, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen()))),
-                    _buildAnimatedButton('Essayer en AR', Icons.view_in_ar, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ArTryOnScreen()))),
-                    _buildAnimatedButton('HairVision Web', Icons.web, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WebARScreen()))),
-                    if (_isAdmin) _buildAnimatedButton('Admin', Icons.admin_panel_settings, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DashboardScreen()))),
+                    _buildFeatureCard(
+                      'Analyse IA',
+                      Icons.face_retouching_natural,
+                      const Color(0xFF6A1B9A),
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  const FacialAnalysisScreen())),
+                    ),
+                    _buildFeatureCard(
+                      'Essayer en AR',
+                      Icons.view_in_ar,
+                      const Color(0xFF0277BD),
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const ArTryOnScreen())),
+                    ),
+                    _buildFeatureCard(
+                      'HairVision Web',
+                      Icons.web,
+                      const Color(0xFF00695C),
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const WebARScreen())),
+                    ),
+                    _buildFeatureCard(
+                      'Boutique',
+                      Icons.shopping_bag,
+                      const Color(0xFFE65100),
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  const MarketplaceScreen())),
+                    ),
+                    _buildFeatureCard(
+                      'Réservation',
+                      Icons.calendar_today,
+                      const Color(0xFF1565C0),
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const BookingScreen())),
+                    ),
+                    _buildFeatureCard(
+                      'Fil Social',
+                      Icons.people,
+                      const Color(0xFF558B2F),
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const SocialScreen())),
+                    ),
+                    _buildFeatureCard(
+                      'Historique',
+                      Icons.history,
+                      const Color(0xFF4527A0),
+                      () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const HistoryScreen())),
+                    ),
+                    if (_isAdmin)
+                      _buildFeatureCard(
+                        'Admin',
+                        Icons.admin_panel_settings,
+                        const Color(0xFF204854),
+                        () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) =>
+                                    const DashboardScreen())),
+                      ),
                   ],
                 ),
               ),
@@ -104,43 +196,47 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _syncData(),
-        backgroundColor: Colors.purple.shade700,
-        child: const Icon(Icons.sync),
+        onPressed: _syncData,
+        backgroundColor: const Color(0xFF204854),
+        tooltip: 'Synchroniser',
+        child: const Icon(Icons.sync, color: Colors.white),
       ),
     );
   }
 
-  Widget _buildAnimatedButton(String title, IconData icon, VoidCallback onPressed) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      child: Card(
-        elevation: 8,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(15),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              gradient: LinearGradient(
-                colors: [Colors.white, Colors.purple.shade50],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+  Widget _buildFeatureCard(
+      String title, IconData icon, Color color, VoidCallback onPressed) {
+    return Card(
+      elevation: 6,
+      shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [color.withOpacity(0.9), color],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 48, color: Colors.purple.shade700),
-                const SizedBox(height: 8),
-                Text(
-                  title,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 44, color: Colors.white),
+              const SizedBox(height: 10),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -148,12 +244,13 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _syncData() {
-    // Implement sync logic
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Syncing data...'),
-        backgroundColor: Colors.purple.shade700,
+      const SnackBar(
+        content: Text('Synchronisation en cours...'),
+        backgroundColor: Color(0xFF204854),
+        duration: Duration(seconds: 2),
       ),
     );
   }
 }
+
