@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'features/auth/auth_provider.dart';
 import 'features/home/home_screen.dart';
 import 'features/auth/login_screen.dart';
+import 'features/auth/signup_screen.dart';
+import 'features/marketplace/cart_provider.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,6 +18,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
       ],
       child: MaterialApp(
         title: 'AirVision',
@@ -48,6 +51,7 @@ class MyApp extends StatelessWidget {
         routes: {
           '/home': (context) => const HomeScreen(),
           '/login': (context) => const LoginScreen(),
+          '/signup': (context) => const SignupScreen(),
         },
       ),
     );
@@ -63,3 +67,4 @@ class AuthWrapper extends StatelessWidget {
     return authProvider.isLoggedIn ? const HomeScreen() : const LoginScreen();
   }
 }
+
